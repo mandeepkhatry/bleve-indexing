@@ -4,6 +4,8 @@ import (
 	"bleve-indexing/internal/models"
 	"bleve-indexing/internal/utils"
 
+	"bleve-indexing/internal/bmapping"
+
 	"github.com/blevesearch/bleve"
 	"github.com/blevesearch/bleve/mapping"
 )
@@ -31,11 +33,12 @@ func (s *Service) CreateIndex(name string) (bleve.Index, error) {
 }
 
 //BuildIndexMapping adds fields mapping and creates index mapping
-func (s *Service) BuildIndexMapping(data models.Table) error {
+func (s *Service) BuildIndexMapping(table models.Table) error {
 
-	//TODO Application specific Field Mapping
-
-	tableMapping := bleve.NewDocumentMapping()
+	tableMapping, err := bmapping.FieldsMapping(table)
+	if err != nil {
+		return err
+	}
 
 	indexMapping := bleve.NewIndexMapping()
 	indexMapping.AddDocumentMapping("table", tableMapping)
