@@ -10,7 +10,8 @@ import (
 	"github.com/blevesearch/bleve/mapping"
 )
 
-func FieldsMapping(table models.Table) (*mapping.DocumentMapping, error) {
+//FieldsMapping maps fields to documment mapping
+func FieldsMapping(table models.Table, fmapping map[string]*mapping.FieldMapping) (*mapping.DocumentMapping, error) {
 	var data map[string]interface{}
 	err := json.Unmarshal(table.Multitenant_Data, &data)
 	if err != nil {
@@ -22,7 +23,7 @@ func FieldsMapping(table models.Table) (*mapping.DocumentMapping, error) {
 	for key, value := range data {
 		dataType := fmt.Sprintf("%T", value)
 		appSpecificType := def.IndexFieldType[dataType]
-		fieldMapping := def.TypeFieldMapping[appSpecificType]
+		fieldMapping := fmapping[appSpecificType]
 		tableMapping.AddFieldMappingsAt(key, fieldMapping)
 	}
 

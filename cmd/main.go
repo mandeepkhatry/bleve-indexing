@@ -2,6 +2,7 @@ package main
 
 import (
 	"bleve-indexing/internal/models"
+	"bleve-indexing/service"
 	"encoding/json"
 	"fmt"
 	"time"
@@ -33,4 +34,9 @@ func main() {
 
 	fmt.Println(data)
 
+	//test
+	s := service.Service{Kvstore: "scorch", IndexType: "scorch", IndexPath: "store"}
+	s.RegisterFieldMapping()
+
+	fmt.Println(s.FieldsMapping)
 }
