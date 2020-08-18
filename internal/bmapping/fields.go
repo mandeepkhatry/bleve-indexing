@@ -13,11 +13,23 @@ func FieldsMapping(data map[string]interface{}, fmapping map[string]*mapping.Fie
 
 	tableMapping := bleve.NewDocumentMapping()
 
+	docMapping := bleve.NewDocumentMapping()
+
 	for key, value := range data {
 		dataType := utils.FindType(value)
 		appSpecificType := def.IndexFieldType[dataType]
-		fieldMapping := fmapping[appSpecificType]
-		tableMapping.AddFieldMappingsAt(key, fieldMapping)
+
+		if appSpecificType == "DOC" {
+			var err error
+			docMapping, err = FieldsMapping(value.(map[string]interface{}), fmapping)
+			if err != nil {
+				return nil, err
+			}
+			tableMapping.AddSubDocumentMapping("Data", docMapping)
+		} else {
+			fieldMapping := fmapping[appSpecificType]
+			tableMapping.AddFieldMappingsAt(key, fieldMapping)
+		}
 	}
 
 	return tableMapping, nil
