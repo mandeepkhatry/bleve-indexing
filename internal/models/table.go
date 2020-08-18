@@ -3,7 +3,7 @@ package models
 import "time"
 
 //Table represents struct for Data Model for indexing.
-type Table struct {
+type DynamicTable struct {
 	ID               string
 	Namespace        string
 	Collection       string

@@ -2,7 +2,6 @@ package service
 
 import (
 	"bleve-indexing/internal/def"
-	"bleve-indexing/internal/models"
 	"bleve-indexing/internal/utils"
 	"errors"
 
@@ -42,13 +41,13 @@ func (s *Service) CreateIndex(name string) (bleve.Index, error) {
 }
 
 //BuildIndexMapping adds fields mapping and creates index mapping
-func (s *Service) BuildIndexMapping(table models.Table) error {
+func (s *Service) BuildIndexMapping(data map[string]interface{}) error {
 
 	if len(s.FieldsMapping) == 0 {
 		return errors.New("Unregistered fields mapping")
 	}
 
-	tableMapping, err := bmapping.FieldsMapping(table, s.FieldsMapping)
+	tableMapping, err := bmapping.FieldsMapping(data, s.FieldsMapping)
 	if err != nil {
 		return err
 	}
