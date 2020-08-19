@@ -17,6 +17,7 @@ func FieldsMapping(data map[string]interface{}, fmapping map[string]*mapping.Fie
 
 	for key, value := range data {
 		dataType := utils.FindType(value)
+
 		appSpecificType := def.IndexFieldType[dataType]
 
 		if appSpecificType == "DOC" {

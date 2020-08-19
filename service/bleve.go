@@ -19,25 +19,30 @@ type Service struct {
 	FieldsMapping map[string]*mapping.FieldMapping
 }
 
-//RegisterFieldMapping registers fields mapping to the service
-func (s *Service) RegisterFieldMapping() {
+//IndexRegister registers kvstore, indextype, indexpath and fields mapping to the service
+func (s *Service) IndexRegister(kvStore string, indexType string, indexPath string) {
+	s.Kvstore = kvStore
+	s.IndexType = indexType
+	s.IndexPath = indexPath
 	s.FieldsMapping = def.TypeFieldMapping
 }
 
-//CreateIndex creates new index at specified path
-func (s *Service) CreateIndex(name string) (bleve.Index, error) {
+//Index creates new index at specified path and index the document.
+func (s *Service) Index(name string, data map[string]interface{}) error {
 
 	err := utils.EnsureDir(s.IndexPath)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
 	index, err := bleve.NewUsing(s.IndexPath+"/"+name, s.IndexMapping, s.IndexType, s.Kvstore, nil)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
-	return index, nil
+	index.Index(data["ID"].(string), data)
+
+	return nil
 }
 
 //BuildIndexMapping adds fields mapping and creates index mapping
@@ -57,6 +62,24 @@ func (s *Service) BuildIndexMapping(data map[string]interface{}) error {
 	indexMapping.DefaultAnalyzer = "en"
 
 	s.IndexMapping = indexMapping
+
+	return nil
+}
+
+//Execute builds index mapping and index given document.
+func (s *Service) Execute(name string, data map[string]interface{}) error {
+
+	var err error
+
+	err = s.BuildIndexMapping(data)
+	if err != nil {
+		return err
+	}
+
+	err = s.Index(name, data)
+	if err != nil {
+		return err
+	}
 
 	return nil
 }

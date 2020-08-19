@@ -39,12 +39,11 @@ func main() {
 		Multitenant_Data: byteData,
 	}
 
-	fmt.Println(data)
-
 	var mData map[string]interface{}
 	err = json.Unmarshal(data.Multitenant_Data, &mData)
 	if err != nil {
 		panic(err)
+
 	}
 
 	document := map[string]interface{}{
@@ -60,11 +59,12 @@ func main() {
 		"Data":             mData,
 	}
 
-	fmt.Println(document["ID"])
+	s := service.Service{}
+	//Register Kvstore, index type, store path and registers field mappings.
+	s.IndexRegister("scorch", "scorch", "store")
+	//Execute Indexing Service
+	s.Execute("nica.employee.1", document)
 
-	//test
-	s := service.Service{Kvstore: "scorch", IndexType: "scorch", IndexPath: "store"}
-	s.RegisterFieldMapping()
+	fmt.Println("Indexing Finished.")
 
-	fmt.Println(s.FieldsMapping)
 }
