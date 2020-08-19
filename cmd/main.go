@@ -67,4 +67,13 @@ func main() {
 
 	fmt.Println("Indexing Finished.")
 
+	// //Testing Search
+	// s := service.Service{}
+	// s.SearchRegister("store")
+	// id, err := s.Search("nica.employee.1", "ID=123")
+	// if err != nil {
+	// 	panic(err)
+	// }
+	// fmt.Println("Document ID : ", id)
+
 }

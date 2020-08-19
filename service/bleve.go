@@ -27,6 +27,11 @@ func (s *Service) IndexRegister(kvStore string, indexType string, indexPath stri
 	s.FieldsMapping = def.TypeFieldMapping
 }
 
+//SearchRegister registers indexpath to the service
+func (s *Service) SearchRegister(indexPath string) {
+	s.IndexPath = indexPath
+}
+
 //Index creates new index at specified path and index the document.
 func (s *Service) Index(name string, data map[string]interface{}) error {
 
@@ -82,4 +87,22 @@ func (s *Service) Execute(name string, data map[string]interface{}) error {
 	}
 
 	return nil
+}
+
+//TODO : Search  Current : Testing purpose only
+
+func (s *Service) Search(name string, query string) (string, error) {
+
+	var err error
+	index, err := bleve.Open(s.IndexPath + "/" + name)
+	if err != nil {
+		return "", err
+	}
+	mquery := bleve.NewMatchQuery(query)
+	searchRequest := bleve.NewSearchRequest(mquery)
+	searchResult, err := index.Search(searchRequest)
+	if err != nil {
+		return "", err
+	}
+	return searchResult.Hits[0].ID, nil
 }
