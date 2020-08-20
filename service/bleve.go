@@ -99,8 +99,8 @@ func (s *Service) Index(name string, data map[string]interface{}) error {
 	return err
 }
 
-//Search executes query on the given store and returns set of matching ids.
-func (s *Service) Search(name string, query string) ([]string, error) {
+//RunQuery executes query on the given store and returns set of matching ids.
+func (s *Service) RunQuery(name string, query string, limit int, fields []string) ([]string, error) {
 
 	var err error
 	index, err := bleve.Open(s.IndexPath + "/" + name)
@@ -108,7 +108,11 @@ func (s *Service) Search(name string, query string) ([]string, error) {
 		return []string{}, err
 	}
 	mquery := bleve.NewQueryStringQuery(query)
+
 	searchRequest := bleve.NewSearchRequest(mquery)
+	searchRequest.Size = limit
+	searchRequest.SortBy(fields)
+
 	searchResult, err := index.Search(searchRequest)
 	if err != nil {
 		return []string{}, err

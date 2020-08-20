@@ -6,8 +6,6 @@ import (
 	"github.com/blevesearch/bleve"
 )
 
-//TODO Field Mapping ; Current Default
-
 //TypeFieldMapping returns type specific field mapping for given application specific type
 var TypeFieldMapping = map[string]*mapping.FieldMapping{
 	"TEXT":      GetTextFieldMapping(),

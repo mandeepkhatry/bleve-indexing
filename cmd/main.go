@@ -5,8 +5,6 @@ import (
 	"bleve-indexing/service"
 	"encoding/json"
 	"fmt"
-	"log"
-	"os"
 	"time"
 )
 
@@ -25,7 +23,7 @@ func main() {
 	}
 
 	data := models.DynamicTable{
-		ID:               "8000",
+		ID:               "1",
 		Namespace:        "NICA",
 		Collection:       "Employee",
 		Group_Label:      "A",
@@ -49,37 +47,39 @@ func main() {
 
 	}
 
-	//Execute Indexing Service
-	s := service.Service{}
-	//Register Kvstore, index type, store path and registers field mappings.
-	s.IndexRegister("scorch", "scorch", "store")
-
-	document := map[string]interface{}{
-		"ID":               data.ID,
-		"Group_Label":      data.Group_Label,
-		"Status":           data.Status,
-		"Stage":            data.Stage,
-		"Created_At":       data.Created_At,
-		"Created_By":       data.Created_By,
-		"Last_Modified_At": data.Last_Modified_At,
-		"Last_Modified_By": data.Last_Modified_By,
-		"Permission":       data.Permission,
-		"Data":             mData,
-	}
-	err = s.Index("nica.employee.1", document)
-	if err != nil {
-		log.Println("Error : ", err)
-		os.Exit(1)
-	}
-	fmt.Println("Indexing Finished.")
-
-	// //Testing Search
+	// //Execute Indexing Service
 	// s := service.Service{}
-	// s.SearchRegister("store")
-	// id, err := s.Search("nica.employee.1", "Data.new.n:Man")
-	// if err != nil {
-	// 	panic(err)
+	// //Register Kvstore, index type, store path and registers field mappings.
+	// s.IndexRegister("scorch", "scorch", "store")
+
+	// document := map[string]interface{}{
+	// 	"ID":               data.ID,
+	// 	"Group_Label":      data.Group_Label,
+	// 	"Status":           data.Status,
+	// 	"Stage":            data.Stage,
+	// 	"Created_At":       data.Created_At,
+	// 	"Created_By":       data.Created_By,
+	// 	"Last_Modified_At": data.Last_Modified_At,
+	// 	"Last_Modified_By": data.Last_Modified_By,
+	// 	"Permission":       data.Permission,
+	// 	"Data":             mData,
 	// }
-	// fmt.Println("Document IDs : ", id)
+	// err = s.Index("nica.employee.1", document)
+	// if err != nil {
+	// 	log.Println("Error : ", err)
+	// 	os.Exit(1)
+	// }
+	// fmt.Println("Indexing Finished.", document["ID"])
+
+	//Testing Search
+	s := service.Service{}
+	s.SearchRegister("store")
+
+	//Execute a query in specified store with specific limit.
+	id, err := s.RunQuery("nica.employee.1", "Data.age:>=22", 100, []string{"name"})
+	if err != nil {
+		panic(err)
+	}
+	fmt.Println("Document IDs : ", id)
 
 }
