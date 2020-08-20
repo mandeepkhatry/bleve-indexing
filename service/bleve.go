@@ -35,14 +35,23 @@ func (s *Service) SearchRegister(indexPath string) {
 //Index creates new index at specified path and index the document.
 func (s *Service) Index(name string, data map[string]interface{}) error {
 
-	err := utils.EnsureDir(s.IndexPath)
-	if err != nil {
-		return err
-	}
+	var index bleve.Index
+	var err error
 
-	index, err := bleve.NewUsing(s.IndexPath+"/"+name, s.IndexMapping, s.IndexType, s.Kvstore, nil)
-	if err != nil {
-		return err
+	path := s.IndexPath + "/" + name
+
+	exists := utils.EnsureDir(path)
+
+	if !exists {
+		index, err = bleve.NewUsing(path, s.IndexMapping, s.IndexType, s.Kvstore, nil)
+		if err != nil {
+			return err
+		}
+	} else {
+		index, err = bleve.Open(path)
+		if err != nil {
+			return err
+		}
 	}
 
 	index.Index(data["ID"].(string), data)
@@ -89,20 +98,25 @@ func (s *Service) Execute(name string, data map[string]interface{}) error {
 	return nil
 }
 
-//TODO : Search  Current : Testing purpose only
-
-func (s *Service) Search(name string, query string) (string, error) {
+//Search executes query on the given store and returns set of matching ids.
+func (s *Service) Search(name string, query string) ([]string, error) {
 
 	var err error
 	index, err := bleve.Open(s.IndexPath + "/" + name)
 	if err != nil {
-		return "", err
+		return []string{}, err
 	}
-	mquery := bleve.NewMatchQuery(query)
+	mquery := bleve.NewQueryStringQuery(query)
 	searchRequest := bleve.NewSearchRequest(mquery)
 	searchResult, err := index.Search(searchRequest)
 	if err != nil {
-		return "", err
+		return []string{}, err
 	}
-	return searchResult.Hits[0].ID, nil
+
+	ids := make([]string, 0)
+
+	for _, v := range searchResult.Hits {
+		ids = append(ids, v.ID)
+	}
+	return ids, nil
 }

@@ -11,9 +11,10 @@ import (
 func main() {
 
 	multitenantData := map[string]interface{}{
-		"name": "Mandeep Khatry",
-		"age":  22,
-		"work": "developer",
+		"name":       "Mandeep Khatry",
+		"age":        22,
+		"work":       "developer",
+		"isEmployee": true,
 	}
 
 	byteData, err := json.Marshal(multitenantData)
@@ -22,7 +23,7 @@ func main() {
 	}
 
 	data := models.DynamicTable{
-		ID:               "123",
+		ID:               "1",
 		Namespace:        "NICA",
 		Collection:       "Employee",
 		Group_Label:      "A",
@@ -46,34 +47,34 @@ func main() {
 
 	}
 
-	document := map[string]interface{}{
-		"ID":               data.ID,
-		"Group_Label":      data.Group_Label,
-		"Status":           data.Status,
-		"Stage":            data.Stage,
-		"Created_At":       data.Created_At,
-		"Created_By":       data.Created_By,
-		"Last_Modified_At": data.Last_Modified_At,
-		"Last_Modified_By": data.Last_Modified_By,
-		"Permission":       data.Permission,
-		"Data":             mData,
-	}
-
-	s := service.Service{}
-	//Register Kvstore, index type, store path and registers field mappings.
-	s.IndexRegister("scorch", "scorch", "store")
-	//Execute Indexing Service
-	s.Execute("nica.employee.1", document)
-
-	fmt.Println("Indexing Finished.")
-
-	// //Testing Search
-	// s := service.Service{}
-	// s.SearchRegister("store")
-	// id, err := s.Search("nica.employee.1", "ID=123")
-	// if err != nil {
-	// 	panic(err)
+	// document := map[string]interface{}{
+	// 	"ID":               data.ID,
+	// 	"Group_Label":      data.Group_Label,
+	// 	"Status":           data.Status,
+	// 	"Stage":            data.Stage,
+	// 	"Created_At":       data.Created_At,
+	// 	"Created_By":       data.Created_By,
+	// 	"Last_Modified_At": data.Last_Modified_At,
+	// 	"Last_Modified_By": data.Last_Modified_By,
+	// 	"Permission":       data.Permission,
+	// 	"Data":             mData,
 	// }
-	// fmt.Println("Document ID : ", id)
+
+	// s := service.Service{}
+	// //Register Kvstore, index type, store path and registers field mappings.
+	// s.IndexRegister("scorch", "scorch", "store")
+	// //Execute Indexing Service
+	// s.Execute("nica.employee.1", document)
+
+	// fmt.Println("Indexing Finished.")
+
+	//Testing Search
+	s := service.Service{}
+	s.SearchRegister("store")
+	id, err := s.Search("nica.employee.1", "Data.age:>=22")
+	if err != nil {
+		panic(err)
+	}
+	fmt.Println("Document IDs : ", id)
 
 }
