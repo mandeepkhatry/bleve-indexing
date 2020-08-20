@@ -26,7 +26,7 @@ func FieldsMapping(data map[string]interface{}, fmapping map[string]*mapping.Fie
 			if err != nil {
 				return nil, err
 			}
-			tableMapping.AddSubDocumentMapping("Data", docMapping)
+			tableMapping.AddSubDocumentMapping(key, docMapping)
 		} else {
 			fieldMapping := fmapping[appSpecificType]
 			tableMapping.AddFieldMappingsAt(key, fieldMapping)

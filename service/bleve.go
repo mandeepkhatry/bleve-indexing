@@ -32,8 +32,8 @@ func (s *Service) SearchRegister(indexPath string) {
 	s.IndexPath = indexPath
 }
 
-//Index creates new index at specified path and index the document.
-func (s *Service) Index(name string, data map[string]interface{}) error {
+//CreateIndex returns index at specified path.
+func (s *Service) CreateIndex(name string) (bleve.Index, error) {
 
 	var index bleve.Index
 	var err error
@@ -45,18 +45,15 @@ func (s *Service) Index(name string, data map[string]interface{}) error {
 	if !exists {
 		index, err = bleve.NewUsing(path, s.IndexMapping, s.IndexType, s.Kvstore, nil)
 		if err != nil {
-			return err
+			return nil, err
 		}
 	} else {
 		index, err = bleve.Open(path)
 		if err != nil {
-			return err
+			return nil, err
 		}
 	}
-
-	index.Index(data["ID"].(string), data)
-
-	return nil
+	return index, err
 }
 
 //BuildIndexMapping adds fields mapping and creates index mapping
@@ -80,8 +77,8 @@ func (s *Service) BuildIndexMapping(data map[string]interface{}) error {
 	return nil
 }
 
-//Execute builds index mapping and index given document.
-func (s *Service) Execute(name string, data map[string]interface{}) error {
+//Index builds index mapping and index given document.
+func (s *Service) Index(name string, data map[string]interface{}) error {
 
 	var err error
 
@@ -90,12 +87,16 @@ func (s *Service) Execute(name string, data map[string]interface{}) error {
 		return err
 	}
 
-	err = s.Index(name, data)
+	index, err := s.CreateIndex(name)
+
 	if err != nil {
 		return err
 	}
 
-	return nil
+	err = index.Index(data["ID"].(string), data)
+	index.Close()
+
+	return err
 }
 
 //Search executes query on the given store and returns set of matching ids.
