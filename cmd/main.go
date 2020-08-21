@@ -97,7 +97,7 @@ func main() {
 
 	// //Execute a query in specified store with specific limit.
 
-	// id, err := s.RunQuery("nica.employee.1", "id:1", 100, []string{"group_label"})
+	// id, err := s.RunQuery("nica.employee.1", "data.name:Mandeep", 100, []string{"group_label"})
 	// if err != nil {
 	// 	panic(err)
 	// }

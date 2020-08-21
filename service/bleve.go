@@ -74,7 +74,15 @@ func (s *Service) BuildIndexMapping(docmapping map[string]interface{}) error {
 
 	var indexMapping = mapping.NewIndexMapping()
 
-	err := json.Unmarshal(mappingBytes, indexMapping)
+	err := indexMapping.UnmarshalJSON(mappingBytes)
+
+	if err != nil {
+		return err
+	}
+
+	//Validate indexmapping
+	err = indexMapping.Validate()
+
 	if err != nil {
 		return err
 	}
