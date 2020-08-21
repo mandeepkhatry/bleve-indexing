@@ -33,7 +33,7 @@ func (s *Service) SearchRegister(indexPath string) {
 }
 
 //CreateIndex returns index at specified path.
-func (s *Service) CreateIndex(name string) (bleve.Index, error) {
+func (s *Service) CreateIndex(name string, data map[string]interface{}) (bleve.Index, error) {
 
 	var index bleve.Index
 	var err error
@@ -43,6 +43,11 @@ func (s *Service) CreateIndex(name string) (bleve.Index, error) {
 	exists := utils.EnsureDir(path)
 
 	if !exists {
+		err := s.BuildIndexMapping(data)
+		if err != nil {
+			return nil, err
+		}
+
 		index, err = bleve.NewUsing(path, s.IndexMapping, s.IndexType, s.Kvstore, nil)
 		if err != nil {
 			return nil, err
@@ -82,12 +87,7 @@ func (s *Service) Index(name string, data map[string]interface{}) error {
 
 	var err error
 
-	err = s.BuildIndexMapping(data)
-	if err != nil {
-		return err
-	}
-
-	index, err := s.CreateIndex(name)
+	index, err := s.CreateIndex(name, data)
 
 	if err != nil {
 		return err
