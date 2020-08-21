@@ -1,81 +1,88 @@
 package service
 
 import (
-	"bleve-indexing/internal/def"
 	"bleve-indexing/internal/utils"
+	"encoding/json"
 	"errors"
-
-	"bleve-indexing/internal/bmapping"
+	"fmt"
+	"io/ioutil"
 
 	"github.com/blevesearch/bleve"
 	"github.com/blevesearch/bleve/mapping"
 )
 
 type Service struct {
-	Kvstore       string
-	IndexPath     string
-	IndexType     string
-	IndexMapping  mapping.IndexMapping
-	FieldsMapping map[string]*mapping.FieldMapping
+	Kvstore      string
+	IndexPath    string
+	IndexType    string
+	IndexMapping mapping.IndexMapping
 }
 
-//IndexRegister registers kvstore, indextype, indexpath and fields mapping to the service
-func (s *Service) IndexRegister(kvStore string, indexType string, indexPath string) {
+//IndexRegister registers kvstore, indextype, indexpath and register indexing.
+func (s *Service) IndexRegister(kvStore string, indexType string, indexPath string, name string, mappingPath string) error {
+
 	s.Kvstore = kvStore
 	s.IndexType = indexType
 	s.IndexPath = indexPath
-	s.FieldsMapping = def.TypeFieldMapping
-}
-
-//SearchRegister registers indexpath to the service
-func (s *Service) SearchRegister(indexPath string) {
-	s.IndexPath = indexPath
-}
-
-//CreateIndex returns index at specified path.
-func (s *Service) CreateIndex(name string, data map[string]interface{}) (bleve.Index, error) {
-
-	var index bleve.Index
-	var err error
 
 	path := s.IndexPath + "/" + name
-
 	exists := utils.EnsureDir(path)
 
 	if !exists {
-		err := s.BuildIndexMapping(data)
+
+		err := s.BuildIndexMapping(mappingPath)
 		if err != nil {
-			return nil, err
+			return err
 		}
 
-		index, err = bleve.NewUsing(path, s.IndexMapping, s.IndexType, s.Kvstore, nil)
-		if err != nil {
-			return nil, err
-		}
-	} else {
-		index, err = bleve.Open(path)
-		if err != nil {
-			return nil, err
-		}
+		_, err = s.CreateNewIndex(path)
+
+		return err
 	}
+
+	//already registered
+	return errors.New("index already registered")
+
+}
+
+//RegisterPath registers indexpath to the service
+func (s *Service) RegisterPath(indexPath string) {
+	s.IndexPath = indexPath
+}
+
+//CreateNewIndex creates index at specified path.
+func (s *Service) CreateNewIndex(path string) (bleve.Index, error) {
+
+	if s.IndexMapping == nil {
+		return nil, errors.New("Unregistered index mapping")
+	}
+
+	index, err := bleve.NewUsing(path, s.IndexMapping, s.IndexType, s.Kvstore, nil)
+
 	return index, err
 }
 
-//BuildIndexMapping adds fields mapping and creates index mapping
-func (s *Service) BuildIndexMapping(data map[string]interface{}) error {
+//OpenIndex opens index at specified path.
+func (s *Service) OpenIndex(path string) (bleve.Index, error) {
 
-	if len(s.FieldsMapping) == 0 {
-		return errors.New("Unregistered fields mapping")
-	}
+	index, err := bleve.Open(path)
+	return index, err
+}
 
-	tableMapping, err := bmapping.FieldsMapping(data, s.FieldsMapping)
+//BuildIndexMapping builds index mapping according ot the given mapping.
+func (s *Service) BuildIndexMapping(mappingPath string) error {
+
+	mappingBytes, err := ioutil.ReadFile(mappingPath)
 	if err != nil {
 		return err
 	}
 
-	indexMapping := bleve.NewIndexMapping()
-	indexMapping.AddDocumentMapping("table", tableMapping)
-	indexMapping.DefaultAnalyzer = "en"
+	var indexMapping = mapping.NewIndexMapping()
+
+	err = json.Unmarshal(mappingBytes, indexMapping)
+	if err != nil {
+		return err
+	}
 
 	s.IndexMapping = indexMapping
 
@@ -87,13 +94,18 @@ func (s *Service) Index(name string, data map[string]interface{}) error {
 
 	var err error
 
-	index, err := s.CreateIndex(name, data)
+	path := s.IndexPath + "/" + name
+
+	fmt.Println(path)
+
+	index, err := s.OpenIndex(path)
 
 	if err != nil {
 		return err
 	}
 
-	err = index.Index(data["ID"].(string), data)
+	fmt.Println("THERE")
+	err = index.Index(data["id"].(string), data)
 	index.Close()
 
 	return err

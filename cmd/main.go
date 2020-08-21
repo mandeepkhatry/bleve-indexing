@@ -4,7 +4,6 @@ import (
 	"bleve-indexing/internal/models"
 	"bleve-indexing/service"
 	"encoding/json"
-	"fmt"
 	"log"
 	"os"
 	"time"
@@ -13,10 +12,9 @@ import (
 func main() {
 
 	multitenantData := map[string]interface{}{
-		"name":       "Mandeep Khatry",
-		"age":        22,
-		"work":       "developer",
-		"isEmployee": false,
+		"name": "Mandeep Khatry",
+		"age":  22,
+		"work": "developer",
 	}
 
 	byteData, err := json.Marshal(multitenantData)
@@ -49,37 +47,44 @@ func main() {
 
 	}
 
+	// document := map[string]interface{}{
+	// 	"id":               data.ID,
+	// 	"group_label":      data.Group_Label,
+	// 	"status":           data.Status,
+	// 	"stage":            data.Stage,
+	// 	"created_at":       data.Created_At,
+	// 	"created_by":       data.Created_By,
+	// 	"last_modified_at": data.Last_Modified_At,
+	// 	"last_modified_by": data.Last_Modified_By,
+	// 	"permission":       data.Permission,
+	// 	"data":             mData,
+	// }
+
 	//Execute Indexing Service
 	s := service.Service{}
 	//Register Kvstore, index type, store path and registers field mappings.
-	s.IndexRegister("scorch", "scorch", "store")
+	err = s.IndexRegister("scorch", "scorch", "store", "nica.employee.1", "mapping/test.json")
 
-	document := map[string]interface{}{
-		"ID":               data.ID,
-		"Group_Label":      data.Group_Label,
-		"Status":           data.Status,
-		"Stage":            data.Stage,
-		"Created_At":       data.Created_At,
-		"Created_By":       data.Created_By,
-		"Last_Modified_At": data.Last_Modified_At,
-		"Last_Modified_By": data.Last_Modified_By,
-		"Permission":       data.Permission,
-		"Data":             mData,
-	}
-	err = s.Index("nica.employee.1", document)
 	if err != nil {
-		log.Println("Error : ", err)
+		log.Println(err)
 		os.Exit(1)
 	}
-	fmt.Println("Indexing Finished.", document["ID"])
+
+	// s.RegisterPath("store")
+	// err = s.Index("nica.employee.1", document)
+	// if err != nil {
+	// 	log.Println("Error : ", err)
+	// 	os.Exit(1)
+	// }
+	// fmt.Println("Indexing Finished.", document["id"])
 
 	// //Testing Search
 	// s := service.Service{}
-	// s.SearchRegister("store")
+	// s.RegisterPath("store")
 
 	// //Execute a query in specified store with specific limit.
 
-	// id, err := s.RunQuery("nica.employee.1", "Data.age:>=22", 100, []string{"name"})
+	// id, err := s.RunQuery("nica.employee.1", "id:1", 100, []string{"group_label"})
 	// if err != nil {
 	// 	panic(err)
 	// }
