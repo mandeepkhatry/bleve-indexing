@@ -4,8 +4,6 @@ import (
 	"bleve-indexing/internal/utils"
 	"encoding/json"
 	"errors"
-	"fmt"
-	"io/ioutil"
 
 	"github.com/blevesearch/bleve"
 	"github.com/blevesearch/bleve/mapping"
@@ -19,7 +17,7 @@ type Service struct {
 }
 
 //IndexRegister registers kvstore, indextype, indexpath and register indexing.
-func (s *Service) IndexRegister(kvStore string, indexType string, indexPath string, name string, mappingPath string) error {
+func (s *Service) IndexRegister(kvStore string, indexType string, indexPath string, name string, docmapping map[string]interface{}) error {
 
 	s.Kvstore = kvStore
 	s.IndexType = indexType
@@ -30,7 +28,7 @@ func (s *Service) IndexRegister(kvStore string, indexType string, indexPath stri
 
 	if !exists {
 
-		err := s.BuildIndexMapping(mappingPath)
+		err := s.BuildIndexMapping(docmapping)
 		if err != nil {
 			return err
 		}
@@ -70,16 +68,13 @@ func (s *Service) OpenIndex(path string) (bleve.Index, error) {
 }
 
 //BuildIndexMapping builds index mapping according ot the given mapping.
-func (s *Service) BuildIndexMapping(mappingPath string) error {
+func (s *Service) BuildIndexMapping(docmapping map[string]interface{}) error {
 
-	mappingBytes, err := ioutil.ReadFile(mappingPath)
-	if err != nil {
-		return err
-	}
+	mappingBytes, _ := json.Marshal(docmapping)
 
 	var indexMapping = mapping.NewIndexMapping()
 
-	err = json.Unmarshal(mappingBytes, indexMapping)
+	err := json.Unmarshal(mappingBytes, indexMapping)
 	if err != nil {
 		return err
 	}
@@ -89,14 +84,12 @@ func (s *Service) BuildIndexMapping(mappingPath string) error {
 	return nil
 }
 
-//Index builds index mapping and index given document.
+//Index opens index at given path and index given document.
 func (s *Service) Index(name string, data map[string]interface{}) error {
 
 	var err error
 
 	path := s.IndexPath + "/" + name
-
-	fmt.Println(path)
 
 	index, err := s.OpenIndex(path)
 
@@ -104,7 +97,6 @@ func (s *Service) Index(name string, data map[string]interface{}) error {
 		return err
 	}
 
-	fmt.Println("THERE")
 	err = index.Index(data["id"].(string), data)
 	index.Close()
 

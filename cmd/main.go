@@ -4,6 +4,7 @@ import (
 	"bleve-indexing/internal/models"
 	"bleve-indexing/service"
 	"encoding/json"
+	"io/ioutil"
 	"log"
 	"os"
 	"time"
@@ -60,18 +61,30 @@ func main() {
 	// 	"data":             mData,
 	// }
 
+	//*******Testing*******
+	mappingBytes, err := ioutil.ReadFile("mapping/test.json")
+	if err != nil {
+		log.Println(err)
+		os.Exit(1)
+	}
+
+	var docmapping map[string]interface{}
+
+	json.Unmarshal(mappingBytes, &docmapping)
+
 	//Execute Indexing Service
 	s := service.Service{}
 	//Register Kvstore, index type, store path and registers field mappings.
-	err = s.IndexRegister("scorch", "scorch", "store", "nica.employee.1", "mapping/test.json")
+	err = s.IndexRegister("scorch", "scorch", "store", "nica.employee.1", docmapping)
 
 	if err != nil {
 		log.Println(err)
 		os.Exit(1)
 	}
 
-	// s.RegisterPath("store")
-	// err = s.Index("nica.employee.1", document)
+	// indexService := service.Service{}
+	// indexService.RegisterPath("store")
+	// err = indexService.Index("nica.employee.1", document)
 	// if err != nil {
 	// 	log.Println("Error : ", err)
 	// 	os.Exit(1)
