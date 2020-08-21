@@ -4,6 +4,7 @@ import (
 	"bleve-indexing/internal/models"
 	"bleve-indexing/service"
 	"encoding/json"
+	"fmt"
 	"io/ioutil"
 	"log"
 	"os"
@@ -27,7 +28,7 @@ func main() {
 		ID:               "1",
 		Namespace:        "NICA",
 		Collection:       "Employee",
-		Group_Label:      "A",
+		Group_Label:      "ABC",
 		Partition:        0,
 		Status:           0,
 		Stage:            0,
@@ -48,21 +49,8 @@ func main() {
 
 	}
 
-	// document := map[string]interface{}{
-	// 	"id":               data.ID,
-	// 	"group_label":      data.Group_Label,
-	// 	"status":           data.Status,
-	// 	"stage":            data.Stage,
-	// 	"created_at":       data.Created_At,
-	// 	"created_by":       data.Created_By,
-	// 	"last_modified_at": data.Last_Modified_At,
-	// 	"last_modified_by": data.Last_Modified_By,
-	// 	"permission":       data.Permission,
-	// 	"data":             mData,
-	// }
-
 	//*******Testing*******
-	mappingBytes, err := ioutil.ReadFile("mapping/test.json")
+	mappingBytes, err := ioutil.ReadFile("mapping/nica-employee.json")
 	if err != nil {
 		log.Println(err)
 		os.Exit(1)
@@ -82,25 +70,39 @@ func main() {
 		os.Exit(1)
 	}
 
-	// indexService := service.Service{}
-	// indexService.RegisterPath("store")
-	// err = indexService.Index("nica.employee.1", document)
-	// if err != nil {
-	// 	log.Println("Error : ", err)
-	// 	os.Exit(1)
-	// }
-	// fmt.Println("Indexing Finished.", document["id"])
+	// ******Testing Indexing**************
 
-	// //Testing Search
-	// s := service.Service{}
-	// s.RegisterPath("store")
+	document := map[string]interface{}{
+		"id":               data.ID,
+		"group_label":      data.Group_Label,
+		"status":           data.Status,
+		"stage":            data.Stage,
+		"created_at":       data.Created_At,
+		"created_by":       data.Created_By,
+		"last_modified_at": data.Last_Modified_At,
+		"last_modified_by": data.Last_Modified_By,
+		"permission":       data.Permission,
+		"data":             mData,
+	}
 
-	// //Execute a query in specified store with specific limit.
+	indexService := service.Service{}
+	indexService.RegisterPath("store")
+	err = indexService.Index("nica.employee.1", document)
+	if err != nil {
+		log.Println("Error : ", err)
+		os.Exit(1)
+	}
+	fmt.Println("Indexing Finished.", document["id"])
 
-	// id, err := s.RunQuery("nica.employee.1", "data.name:Mandeep", 100, []string{"group_label"})
-	// if err != nil {
-	// 	panic(err)
-	// }
-	// fmt.Println("Document IDs : ", id)
+	//Testing Search
+	searchService := service.Service{}
+	searchService.RegisterPath("store")
+
+	//Execute a query in specified store with specific limit and sort fields.
+	id, err := searchService.RunQuery("nica.employee.1", "group_label:ABC", 100, []string{"id"})
+	if err != nil {
+		panic(err)
+	}
+	fmt.Println("Document IDs : ", id)
 
 }

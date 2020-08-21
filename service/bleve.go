@@ -33,7 +33,7 @@ func (s *Service) IndexRegister(kvStore string, indexType string, indexPath stri
 			return err
 		}
 
-		_, err = s.CreateNewIndex(path)
+		err = s.CreateNewIndex(path)
 
 		return err
 	}
@@ -49,15 +49,16 @@ func (s *Service) RegisterPath(indexPath string) {
 }
 
 //CreateNewIndex creates index at specified path.
-func (s *Service) CreateNewIndex(path string) (bleve.Index, error) {
+func (s *Service) CreateNewIndex(path string) error {
 
 	if s.IndexMapping == nil {
-		return nil, errors.New("Unregistered index mapping")
+		return errors.New("Unregistered index mapping")
 	}
 
 	index, err := bleve.NewUsing(path, s.IndexMapping, s.IndexType, s.Kvstore, nil)
+	index.Close()
 
-	return index, err
+	return err
 }
 
 //OpenIndex opens index at specified path.
