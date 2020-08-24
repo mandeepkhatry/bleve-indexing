@@ -10,6 +10,5 @@ var IndexFieldType = map[string]string{
 	"float64":                 "NUMERIC",
 	"bool":                    "BOOLEAN",
 	"time.Time":               "DATE_TIME",
-	"geo_point":               "GEO_POINT",
 	"map[string]interface {}": "DOC",
 }

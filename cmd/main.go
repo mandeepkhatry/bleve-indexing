@@ -28,7 +28,7 @@ func main() {
 		ID:               "1",
 		Namespace:        "NICA",
 		Collection:       "Employee",
-		Group_Label:      "ABC",
+		Group_Label:      "I am going to school",
 		Partition:        0,
 		Status:           0,
 		Stage:            0,
@@ -49,7 +49,7 @@ func main() {
 
 	}
 
-	//*******Testing*******
+	// //*******Testing*******
 	mappingBytes, err := ioutil.ReadFile("mapping/nica-employee.json")
 	if err != nil {
 		log.Println(err)
@@ -60,15 +60,14 @@ func main() {
 
 	json.Unmarshal(mappingBytes, &docmapping)
 
-	//Execute Indexing Service
-	s := service.Service{}
-	//Register Kvstore, index type, store path and registers field mappings.
-	err = s.IndexRegister("scorch", "scorch", "store", "nica.employee.1", docmapping)
-
+	//Index Register
+	iRegisterService := service.NewIndexRegisterService("scorch", "scorch", "store", "nica.employee.1")
+	err = iRegisterService.IndexRegister(docmapping)
 	if err != nil {
-		log.Println(err)
-		os.Exit(1)
+		log.Fatal(err)
 	}
+
+	//Indexing Document
 
 	// ******Testing Indexing**************
 
@@ -85,24 +84,24 @@ func main() {
 		"data":             mData,
 	}
 
-	indexService := service.Service{}
-	indexService.RegisterPath("store")
-	err = indexService.Index("nica.employee.1", document)
+	indexService := service.NewIndexService("store", "nica.employee.1")
+	err = indexService.Index(document)
 	if err != nil {
-		log.Println("Error : ", err)
-		os.Exit(1)
+		log.Fatal(err)
 	}
-	fmt.Println("Indexing Finished.", document["id"])
 
-	//Testing Search
-	searchService := service.Service{}
-	searchService.RegisterPath("store")
-
-	//Execute a query in specified store with specific limit and sort fields.
-	id, err := searchService.RunQuery("nica.employee.1", "group_label:ABC", 100, []string{"id"})
+	//Quering
+	queryService, err := service.NewQueryService("store", "nica.employee.1")
 	if err != nil {
-		panic(err)
+		log.Fatal(err)
 	}
-	fmt.Println("Document IDs : ", id)
+
+	limit := 100
+	sortFields := []string{"id"}
+	ids, err := queryService.RunQuery("data.name:Mandeep", limit, sortFields)
+	if err != nil {
+		log.Fatal(err)
+	}
+	fmt.Println("Document IDs : ", ids)
 
 }

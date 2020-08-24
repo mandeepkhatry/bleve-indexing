@@ -6,70 +6,188 @@ Full-text Search and Indexing.
 ```
 {
     "types": {
-        "example": {
+        "document": {
             "enabled": true,
             "dynamic": true,
             "properties": {
-                "name": {
+                "id": {
                     "enabled": true,
                     "dynamic": true,
                     "fields": [{
                         "type": "text",
                         "analyzer": "en",
-                        "store": true,
+                        "store": false,
                         "index": true,
                         "include_term_vectors": true,
                         "include_in_all": true
                     }],
-                    "default_analyzer": "en"
+                    "default_analyzer": ""
                 },
-                "timestamp": {
+                "group_label": {
                     "enabled": true,
                     "dynamic": true,
                     "fields": [{
-                        "type": "datetime",
-                        "store": true,
+                        "type": "text",
+                        "analyzer": "en",
+                        "store": false,
+                        "index": true,
+                        "include_term_vectors": true,
+                        "include_in_all": true
+                    }],
+                    "default_analyzer": ""
+
+                },
+                "status": {
+                    "enabled": true,
+                    "dynamic": true,
+                    "fields": [{
+                        "type": "number",
+                        "store": false,
                         "index": true,
                         "include_in_all": true
                     }],
                     "default_analyzer": ""
+
+                },
+                "created_at": {
+                    "enabled": true,
+                    "dynamic": true,
+                    "fields": [{
+                        "type": "datetime",
+                        "store": false,
+                        "index": true,
+                        "include_in_all": true
+                    }],
+                    "default_analyzer": ""
+                },
+                "created_by": {
+                    "enabled": true,
+                    "dynamic": true,
+                    "fields": [{
+                        "type": "text",
+                        "analyzer": "en",
+                        "store": false,
+                        "index": true,
+                        "include_term_vectors": true,
+                        "include_in_all": true
+                    }],
+                    "default_analyzer": ""
+                },
+                "last_modified_at": {
+                    "enabled": true,
+                    "dynamic": true,
+                    "fields": [{
+                        "type": "datetime",
+                        "store": false,
+                        "index": true,
+                        "include_in_all": true
+                    }],
+                    "default_analyzer": ""
+                },
+                "last_modified_by": {
+                    "enabled": true,
+                    "dynamic": true,
+                    "fields": [{
+                        "type": "text",
+                        "analyzer": "en",
+                        "store": false,
+                        "index": true,
+                        "include_term_vectors": true,
+                        "include_in_all": true
+                    }],
+                    "default_analyzer": ""
+                },
+                "permission": {
+                    "enabled": true,
+                    "dynamic": true,
+                    "fields": [{
+                        "type": "number",
+                        "store": false,
+                        "index": true,
+                        "include_in_all": true
+                    }],
+                    "default_analyzer": ""
+                },
+
+                "data": {
+                    "enabled": true,
+                    "dynamic": true,
+                    "properties": {
+                        "name": {
+                            "enabled": true,
+                            "dynamic": true,
+                            "fields": [{
+                                "type": "text",
+                                "analyzer": "en",
+                                "store": false,
+                                "index": true,
+                                "include_term_vectors": true,
+                                "include_in_all": true
+                            }],
+                            "default_analyzer": "en"
+                        },
+                        "age": {
+                            "enabled": true,
+                            "dynamic": true,
+                            "fields": [{
+                                "type": "number",
+                                "store": false,
+                                "index": true,
+                                "include_in_all": true
+                            }],
+                            "default_analyzer": ""
+                        },
+                        "work": {
+                            "enabled": true,
+                            "dynamic": true,
+                            "fields": [{
+                                "type": "text",
+                                "analyzer": "en",
+                                "store": false,
+                                "index": true,
+                                "include_term_vectors": true,
+                                "include_in_all": true
+                            }],
+                            "default_analyzer": "en"
+                        }
+                    },
+                    "default_analyzer": ""
+
+                },
+                "default_mapping": {
+                    "enabled": true,
+                    "dynamic": true,
+                    "default_analyzer": ""
                 }
+
             },
-            "default_analyzer": "en"
+            "default_analyzer": ""
         }
     },
     "default_mapping": {
         "enabled": true,
         "dynamic": true,
-        "default_analyzer": "standard"
+        "default_analyzer": ""
     },
-    "type_field": "_type",
-    "default_type": "_default",
+    "type_field": "type",
+    "default_type": "document",
     "default_analyzer": "standard",
     "default_datetime_parser": "dateTimeOptional",
     "default_field": "_all",
     "store_dynamic": true,
     "index_dynamic": true,
-    "analysis": {
-        "analyzers": {},
-        "char_filters": {},
-        "tokenizers": {},
-        "token_filters": {},
-        "token_maps": {}
-    }
+    "analysis": {}
 }
 ```
 
 ## Index Register
 
 ```
-s := service.Service{}
 
-//Register Kvstore, index type, path to store and registers mappings.
-err = s.IndexRegister("scorch", "scorch", "store", "nica.employee.1", docmapping)
-
+iRegisterService := service.NewIndexRegisterService("scorch", "scorch", "store", "nica.employee.1")
+err = iRegisterService.IndexRegister(docmapping)
 if err != nil {
-    panic(err)
+    log.Fatal(err)
 }
 ```
 
@@ -77,38 +195,28 @@ if err != nil {
 ## Indexing
 
 ```
-
-indexService := service.Service{}
-
-//Register Path
-indexService.RegisterPath("store")
-
-//Index document
-err = indexService.Index("nica.employee.1", document)
+indexService := service.NewIndexService("store", "nica.employee.1")
+err = indexService.Index(document)
 if err != nil {
-    panic(err)
+    log.Fatal(err)
 }
-
-fmt.Println("Indexing Finished.", document["id"])
 
 ```
 
 ## Executing Query
 
 ```
-searchService := service.Service{}
-searchService.RegisterPath("store")
-
-limit := 100
-sortFields := []string{"id}
-query := "created_by:admin"
-
-//Run Query
-id, err := searchService.RunQuery("nica.employee.1", query, limit, sortFields)
+queryService, err := service.NewQueryService("store", "nica.employee.1")
 if err != nil {
-    panic(err)
+    log.Fatal(err)
 }
 
-fmt.Println("Document IDs : ", id)
+limit := 100
+sortFields := []string{"id"}
+ids, err := queryService.RunQuery("data.name:Mandeep", limit, sortFields)
+if err != nil {
+    log.Fatal(err)
+}
+fmt.Println("Document IDs : ", ids)
 
 ```
